@@ -33,7 +33,7 @@ public class ChatRoom {
     public ChatRoom(ServerSocket serverSocket){
         _serverSocket = serverSocket;
 //        _executionFlag = 0;
-        _clientList = new ArrayList<>();
+_clientList = new ArrayList<>();
     }
     
     public static void main(String[] args) throws IOException {
@@ -129,13 +129,16 @@ class ClientReaderWriter extends Thread {
             int i = 0;
             BufferedReader inputFromClient = null;
             int numberOfClients = _chatRoom._clientList.size();
+//            System.out.println("number of client:- "+numberOfClients);
             while (i < numberOfClients) {
                 Socket currentClient = _chatRoom._clientList.get(i);
                 inputFromClient=new BufferedReader(new InputStreamReader(currentClient.getInputStream()));
-                if(inputFromClient.ready()){
+//                System.out.println("imput from user:- "+inputFromClient.readLine());
+//                if(inputFromClient.ready()){
+//                    System.out.println("input is ready to be read from:- "+currentClient);
                     String line = inputFromClient.readLine();
                     writeToClients(currentClient,line);
-                }
+//                }
                 i++;
             }
         }
@@ -150,6 +153,7 @@ class ClientReaderWriter extends Thread {
             {
             }
             else{
+                System.out.println("writing to client:- "+tempSocket);
                 PrintStream outputToClient=new PrintStream(_chatRoom._clientList.get(i).getOutputStream());
                 outputToClient.println(line);
             }

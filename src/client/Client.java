@@ -17,7 +17,7 @@ import java.net.Socket;
  * @author Raghu
  */
 public class Client {
-
+    
     
     public Socket _socket;
     public BufferedReader _inputFromStream;
@@ -25,14 +25,13 @@ public class Client {
     public BufferedReader _userInput;
     private String _name;
     public Thread _keyboardReadStream;
-    public Thread _userReadStream;
-
+    
     public Client(Socket socket, String name) {
         this._socket = socket;
         this._name = name;
     }
-
-        public static void main(String args[]) throws IOException, InterruptedException{
+    
+    public static void main(String args[]) throws IOException, InterruptedException{
         
         
         BufferedReader userInputMain=new BufferedReader(new InputStreamReader(System.in));
@@ -48,20 +47,17 @@ public class Client {
     }
     
     public void fire() throws IOException, InterruptedException {
-
+        
         // Console's stream.
         InputStreamReader keyboardStream = new InputStreamReader(System.in);
         this._userInput = new BufferedReader(keyboardStream);
-        // Client's input Stream.
-        this._inputFromStream = new BufferedReader(new InputStreamReader(this._socket.getInputStream()));
+
         // Client's output Stream.
         this._outputToStream = new PrintStream(this._socket.getOutputStream());
-
+        
         //Make class level.
-        _keyboardReadStream = new ReadFromStream(this._inputFromStream, this._name);
-        _userReadStream = new ReadFromStream(this._userInput, this._outputToStream);
-
+        _keyboardReadStream = new ReadFromStream(this._userInput,this._outputToStream);
+        
         _keyboardReadStream.start();
-        _userReadStream.start();
     }
 }
