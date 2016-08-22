@@ -12,13 +12,8 @@ import java.io.PrintStream;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -29,11 +24,16 @@ public class ChatRoom {
     List<Socket> _clientList;
     ServerSocket _serverSocket;
     Socket _socket;
+    Thread _clientListener;
+    Thread _clientReaderWriter;
+//    int _executionFlag;
     
 //Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
     
     public ChatRoom(ServerSocket serverSocket){
         _serverSocket = serverSocket;
+//        _executionFlag = 0;
+        _clientList = new ArrayList<>();
     }
     
     public static void main(String[] args) throws IOException {
@@ -49,7 +49,6 @@ public class ChatRoom {
             
             serverSocket = new ServerSocket(58000);
             serverSocket.setSoTimeout(60000);
-            System.out.println("User connected. You can start chating.");
         }catch(BindException bindException){
             serverSocket = new ServerSocket(0);
         }catch(IOException ex){
@@ -68,14 +67,13 @@ public class ChatRoom {
     }
     
     public void listenForNewConnections(){
-        Thread clientListner = new ClientListener(_serverSocket,this);
-        clientListner.start();
-        
+        this._clientListener = new ClientListener(_serverSocket,this);
+        _clientListener.start();
     }
     
     public void broadcastChat(){
-        Thread ClientReaderWriter = new ClientReaderWriter(this);
-        ClientReaderWriter.start();
+        _clientReaderWriter = new ClientReaderWriter(this);
+        _clientReaderWriter.start();
     }
     
 }
@@ -96,6 +94,10 @@ class ClientListener extends Thread {
             try {
                 Socket socket= this._serverSocket.accept();
                 this._chatRoom._clientList.add(socket);
+                System.out.println("User connected. You can start chating.");
+//                if(this._chatRoom._executionFlag==0){
+//                    this._chatRoom.broadcastChat();
+//                }
             } catch (IOException ex) {
                 System.out.println("Error while listening for client");
             }
