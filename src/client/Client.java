@@ -7,6 +7,7 @@ package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -21,12 +22,14 @@ public class Client {
     
     
     public Socket _socket;
-    public PrintStream _outputToStream;
-    public BufferedReader _userInput;
     public String _name;
     public Thread _keyboardReadStream;
     public BufferedReader _inputFromStream;
     public Thread _userReadStream;
+    public InputStream _keyboardInputStream;
+    public OutputStream _keyboardOutputStream;
+    public InputStream _userInputStream;
+    public OutputStream _userOutputStream;
     
     public Client(String name) throws IOException {
         _socket = new Socket("localhost", 58000);
@@ -34,16 +37,14 @@ public class Client {
         this._name = name;
         
         // Console's stream.
-        InputStreamReader keyboardInputStream = new InputStreamReader(System.in);
-        OutputStream keyboardOutputStream = System.out;
+        _keyboardInputStream = System.in;
+        _keyboardOutputStream = System.out;
         
-        InputStreamReader userInputStream = new InputStreamReader(_socket.getInputStream());
-        OutputStream userOutputStream=_socket.getOutputStream();
+        _userInputStream = _socket.getInputStream();
+        _userOutputStream=_socket.getOutputStream();
         
-        _keyboardReadStream = new ReadWriteStream(keyboardInputStream,userOutputStream,name);
-        System.out.println(_keyboardReadStream);
-        _userReadStream = new ReadWriteStream(userInputStream,keyboardOutputStream,name);
-        System.out.println(_userInput);
+        _keyboardReadStream = new ReadWriteStream(_keyboardInputStream,_userOutputStream,name);
+        _userReadStream = new ReadWriteStream(_userInputStream,_keyboardOutputStream,name);
         
         _keyboardReadStream.start();
         _userReadStream.start();
