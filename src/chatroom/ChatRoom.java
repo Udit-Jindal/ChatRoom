@@ -51,6 +51,7 @@ _clientList = new ArrayList<>();
             serverSocket.setSoTimeout(60000);
         }catch(BindException bindException){
             serverSocket = new ServerSocket(0);
+            System.out.println("Port was busy");
         }catch(IOException ex){
             System.out.println("Sorry All channels busy. Please try later.");
         }
@@ -125,36 +126,36 @@ class ClientReaderWriter extends Thread {
     
     public void readFromClient() throws IOException{
         
-        while(true){
+        int numberOfClients = this._chatRoom._clientList.size();
+        while(true && numberOfClients>0){
             int i = 0;
             BufferedReader inputFromClient = null;
-            int numberOfClients = _chatRoom._clientList.size();
-//            System.out.println("number of client:- "+numberOfClients);
+            System.out.println("Inside readFromClient");
+            
             while (i < numberOfClients) {
                 Socket currentClient = _chatRoom._clientList.get(i);
                 inputFromClient=new BufferedReader(new InputStreamReader(currentClient.getInputStream()));
-//                System.out.println("imput from user:- "+inputFromClient.readLine());
-//                if(inputFromClient.ready()){
-//                    System.out.println("input is ready to be read from:- "+currentClient);
-                    String line = inputFromClient.readLine();
-                    writeToClients(currentClient,line);
-//                }
+                System.out.println("input is ready to be read from:- "+currentClient);
+                String line = inputFromClient.readLine();
+                writeToClients(currentClient,line);
                 i++;
             }
         }
     }
     
     public void writeToClients(Socket currentClient,String line) throws IOException{
+        System.out.println("came insiede this method.");
         int i = 0;
         int numberOfClients = _chatRoom._clientList.size();
         while (i < numberOfClients) {
             Socket tempSocket = _chatRoom._clientList.get(i);
             if(tempSocket.equals(currentClient))
             {
+                System.out.println("current client. Not writing :- "+tempSocket);
             }
             else{
                 System.out.println("writing to client:- "+tempSocket);
-                PrintStream outputToClient=new PrintStream(_chatRoom._clientList.get(i).getOutputStream());
+                PrintStream outputToClient=new PrintStream(tempSocket.getOutputStream());
                 outputToClient.println(line);
             }
             i++;

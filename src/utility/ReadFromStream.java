@@ -39,6 +39,7 @@ public class ReadFromStream extends Thread{
     
     public void read()throws IOException{
         this._line = _inputStream.readLine();
+//        System.out.println("read :-"+this._line);
         this._outputStream.println(this._line);
     }
 }

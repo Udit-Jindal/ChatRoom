@@ -20,7 +20,6 @@ public class Client {
     
     
     public Socket _socket;
-    public BufferedReader _inputFromStream;
     public PrintStream _outputToStream;
     public BufferedReader _userInput;
     private String _name;
@@ -55,7 +54,9 @@ public class Client {
         // Client's output Stream.
         this._outputToStream = new PrintStream(this._socket.getOutputStream());
         
-        //Make class level.
+//        this._outputToStream.
+        this._outputToStream.println("I am connected.");
+        
         _keyboardReadStream = new ReadFromStream(this._userInput,this._outputToStream);
         
         _keyboardReadStream.start();
