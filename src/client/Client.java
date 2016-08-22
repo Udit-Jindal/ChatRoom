@@ -22,8 +22,10 @@ public class Client {
     public Socket _socket;
     public PrintStream _outputToStream;
     public BufferedReader _userInput;
-    private String _name;
+    public String _name;
     public Thread _keyboardReadStream;
+    public BufferedReader _inputFromStream;
+    public Thread _userReadStream;
     
     public Client(Socket socket, String name) {
         this._socket = socket;
@@ -45,20 +47,13 @@ public class Client {
         client.fire();
     }
     
-    public void fire() throws IOException, InterruptedException {
+    public void fire() throws IOException, InterruptedException
+    {
         
-        // Console's stream.
-        InputStreamReader keyboardStream = new InputStreamReader(System.in);
-        this._userInput = new BufferedReader(keyboardStream);
-
-        // Client's output Stream.
-        this._outputToStream = new PrintStream(this._socket.getOutputStream());
-        
-//        this._outputToStream.
-        this._outputToStream.println("I am connected.");
-        
-        _keyboardReadStream = new ReadFromStream(this._userInput,this._outputToStream);
+        _keyboardReadStream = new ReadFromStream(_socket);
+        _userReadStream = new ReadFromStream(this._name,_socket);
         
         _keyboardReadStream.start();
+        _userReadStream.start();
     }
 }
