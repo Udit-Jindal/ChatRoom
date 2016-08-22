@@ -8,7 +8,9 @@ package utility;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 
 
@@ -21,30 +23,31 @@ public class ReadWriteStream extends Thread{
     
     public OutputStream _outputStream;
     public InputStream _inputStream;
+    
+    public BufferedReader _inputBufferedReader;
+    public PrintStream _outputPrintStream;
+    
     public String _name;
     
     public ReadWriteStream(InputStream inputStream, OutputStream outputStream, String name) throws IOException {
         super("Input from thread");
+        
         _inputStream = inputStream;
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        _inputBufferedReader = new BufferedReader(inputStreamReader);
+        
         _outputStream = outputStream;
+        _outputPrintStream=new PrintStream(outputStream);
+        
         _name = name;
     }
     
     @Override
-    public void run(){//Use buffer
-        byte[] buf=new byte[1024];
+    public void run(){
+        
         try {
-            int bytes_read;
             while(true){
-                bytes_read = _inputStream.read(buf, 0, buf.length);
-                
-                if(bytes_read < 0) {
-                    System.err.println("Server: Tried to read from socket, read() returned < 0,  Closing socket.");
-                    return;
-                }
-                
-                _outputStream.write(buf, 0, bytes_read);
-                _outputStream.flush();
+                this._outputPrintStream.println(_name+"=>"+_inputBufferedReader.readLine());
             }
         } catch (Exception ex) {
             System.out.println("IOException"+ex);
