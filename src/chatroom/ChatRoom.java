@@ -5,12 +5,10 @@
 */
 package chatroom;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -22,104 +20,62 @@ import java.util.logging.Logger;
  *
  * @author Raghu
  */
-public class ChatRoom {
+public final class ChatRoom {
     
     List<ProxyClient> _clientList;
     ServerSocket _serverSocket;
     Thread _clientListener;
-    Thread _clientReaderWriter;
-    int _executionFlag;
+    Thread _proxyClient;
     
-//Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-    
-    public ChatRoom(ServerSocket serverSocket){
-        _serverSocket = serverSocket;
-        _executionFlag = 0;
-        _clientList = new ArrayList<>();
-    }
-    
-    public static void main(String[] args) throws IOException {
+    public ChatRoom(String name) throws IOException{
         
-        BufferedReader userInputMain = null;
-        ServerSocket serverSocket = null;
-        String name = null;
-        try{
-            
-            userInputMain=new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("Please enter the chat room name:- ");
-            name = userInputMain.readLine();
-            
-            serverSocket = new ServerSocket(58000);
-            serverSocket.setSoTimeout(60000);
-        }catch(BindException bindException){
-            System.out.println("Port is un-available. Exiting.");
-            System.exit(1);
-        }catch(IOException ex){
-            System.out.println("Sorry All channels busy. Please try later.");
-            System.exit(1);
-        }
+        _serverSocket = new ServerSocket(58000);
+        _serverSocket.setSoTimeout(60000);
+        _clientList = new ArrayList<>();
         
         System.out.println("Chat room with name "
                 + name
                 +" started on:-"
-                + serverSocket.getLocalSocketAddress()
-                +":"+ serverSocket.getLocalPort());
+                + _serverSocket.getLocalSocketAddress()
+                +":"+ _serverSocket.getLocalPort());
         
-        ChatRoom chatRoom = new ChatRoom(serverSocket);
-        chatRoom.listenForNewConnections();
-    }
-    
-    public void listenForNewConnections(){
-        this._clientListener = new ClientListener(_serverSocket,this);
+        
+        this._clientListener = new ClientListener();
         _clientListener.start();
     }
     
-}
-
-class ClientListener extends Thread {
-    
-    ServerSocket _serverSocket;
-    ChatRoom _chatRoom;
-    
-    public ClientListener(ServerSocket serverSocket,ChatRoom chatRoom) {
-        _serverSocket = serverSocket;
-        _chatRoom = chatRoom;
-    }
+    class ClientListener extends Thread {
     
     @Override
     public void run(){
         while(true){
             try {
-                Socket socket= this._serverSocket.accept();
-                ProxyClient proxyClient = new ProxyClient(socket, Integer.toString(socket.getLocalPort()), _chatRoom);
-                this._chatRoom._clientList.add(proxyClient);
-                Thread thread = new Thread(proxyClient);
-                thread.start();
+                Socket socket= _serverSocket.accept();
+                _proxyClient = new ProxyClient(socket);
+                _clientList.add((ProxyClient) _proxyClient);
+                _proxyClient.start();
             } catch (IOException ex) {
-                System.out.println("Error while listening for client");
+                System.out.println("IOException Occoured." + ex);
             }
             catch (Exception ex){
-                System.out.println("Error while listening for client");
+                System.out.println("Generic exception Occoured. " + ex);
+            }finally{
             }
         }
     }
     
 }
-
-class ProxyClient implements Runnable{
+    
+    class ProxyClient extends Thread{
     
     Socket _socket;
-    String _name;
     BufferedReader _inputFromClient;
     PrintStream _outputToClient;
-    ChatRoom _chatroomObject;
     
-    public ProxyClient(Socket socket,String name,ChatRoom chatRoomObject) throws IOException{
+    public ProxyClient(Socket socket) throws IOException{
         _socket = socket;
-        _name = name;
         _inputFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         _outputToClient = new PrintStream(socket.getOutputStream());
-        _chatroomObject = chatRoomObject;
     }
     
     @Override
@@ -127,7 +83,7 @@ class ProxyClient implements Runnable{
         String line;
         try{
             while(true){
-                line = readFromClient();
+                line = _inputFromClient.readLine();
                 if(!line.isEmpty())
                 {
                     writeToClients(line);
@@ -145,24 +101,23 @@ class ProxyClient implements Runnable{
         }
     }
     
-    public String readFromClient() throws IOException{
-        String line = _inputFromClient.readLine();
-        return line;
-    }
-    
     public void writeToClients(String line){
-        int i;
-        int numberOfClients = _chatroomObject._clientList.size();
         PrintStream tempObj;
-        for(i=0;i<numberOfClients;i++){
-            ProxyClient tempProxyClientObject = _chatroomObject._clientList.get(i);
-            if(tempProxyClientObject.equals(this)){
+        
+        for(ProxyClient pxObj:_clientList){
+            if(pxObj.equals(this)){
                 
             }else{
-                tempObj = tempProxyClientObject._outputToClient;
+                tempObj = pxObj._outputToClient;
                 tempObj.println(line);
             }
         }
     }
     
 }
+    
+}
+
+
+
+

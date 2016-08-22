@@ -8,8 +8,9 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import utility.ReadFromStream;
+import utility.ReadWriteStream;
 import java.net.Socket;
 
 /**
@@ -27,33 +28,25 @@ public class Client {
     public BufferedReader _inputFromStream;
     public Thread _userReadStream;
     
-    public Client(Socket socket, String name) {
-        this._socket = socket;
-        this._name = name;
-    }
-    
-    public static void main(String args[]) throws IOException, InterruptedException{
-        
-        
-        BufferedReader userInputMain=new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Please enter your name:- ");
-        String name = userInputMain.readLine();
-        Socket socket = null;
-        
-        socket = new Socket("localhost", 58000);
+    public Client(String name) throws IOException {
+        _socket = new Socket("localhost", 58000);
         System.out.println("Please start chating.");
+        this._name = name;
         
-        Client client = new Client(socket,name);
-        client.fire();
-    }
-    
-    public void fire() throws IOException, InterruptedException
-    {
+        // Console's stream.
+        InputStreamReader keyboardInputStream = new InputStreamReader(System.in);
+        OutputStream keyboardOutputStream = System.out;
         
-        _keyboardReadStream = new ReadFromStream(_socket);
-        _userReadStream = new ReadFromStream(this._name,_socket);
+        InputStreamReader userInputStream = new InputStreamReader(_socket.getInputStream());
+        OutputStream userOutputStream=_socket.getOutputStream();
+        
+        _keyboardReadStream = new ReadWriteStream(keyboardInputStream,userOutputStream,name);
+        System.out.println(_keyboardReadStream);
+        _userReadStream = new ReadWriteStream(userInputStream,keyboardOutputStream,name);
+        System.out.println(_userInput);
         
         _keyboardReadStream.start();
         _userReadStream.start();
+        
     }
 }
