@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
 
 /**
@@ -32,7 +31,7 @@ public class ReadWriteStream extends Thread{
     }
     
     @Override
-    public void run(){
+    public void run(){//Use buffer
         byte[] buf=new byte[1024];
         try {
             int bytes_read;
@@ -43,7 +42,7 @@ public class ReadWriteStream extends Thread{
                     System.err.println("Server: Tried to read from socket, read() returned < 0,  Closing socket.");
                     return;
                 }
-
+                
                 _outputStream.write(buf, 0, bytes_read);
                 _outputStream.flush();
             }
